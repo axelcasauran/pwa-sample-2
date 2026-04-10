@@ -13,6 +13,7 @@ export default function QRScannerView({ onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const scannerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +36,7 @@ export default function QRScannerView({ onBack }: Props) {
     setCameraReady(false);
   }, []);
 
-  const startScanner = useCallback(async () => {
+  const startScanner = useCallback(async (facing: "user" | "environment" = facingMode) => {
     setError(null);
     setResult(null);
 
@@ -56,7 +57,7 @@ export default function QRScannerView({ onBack }: Props) {
       setScanning(true);
 
       await scanner.start(
-        { facingMode: "environment" },
+        { facingMode: facing },
         {
           fps: 10,
           qrbox: { width: 220, height: 220 },
@@ -83,7 +84,14 @@ export default function QRScannerView({ onBack }: Props) {
         setError(err?.message || "Failed to start camera.");
       }
     }
-  }, [stopScanner]);
+  }, [stopScanner, facingMode]);
+
+  const switchCamera = useCallback(async () => {
+    const next = facingMode === "user" ? "environment" : "user";
+    setFacingMode(next);
+    await stopScanner();
+    await startScanner(next);
+  }, [facingMode, stopScanner, startScanner]);
 
   useEffect(() => {
     return () => {
@@ -192,13 +200,27 @@ export default function QRScannerView({ onBack }: Props) {
       )}
 
       {scanning && (
-        <button
-          className="btn btn-secondary btn-block"
-          onClick={stopScanner}
-          style={{ marginTop: 8 }}
-        >
-          Stop Scanner
-        </button>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button
+            className="btn btn-secondary"
+            style={{ flex: 1 }}
+            onClick={switchCamera}
+            disabled={!cameraReady}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 4v6h6" /><path d="M23 20v-6h-6" />
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+            </svg>
+            {facingMode === "user" ? "Switch to Rear" : "Switch to Front"}
+          </button>
+          <button
+            className="btn btn-secondary"
+            style={{ flex: 1 }}
+            onClick={stopScanner}
+          >
+            Stop Scanner
+          </button>
+        </div>
       )}
 
       {error && (
