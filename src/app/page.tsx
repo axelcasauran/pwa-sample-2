@@ -10,6 +10,8 @@ type Screen = "home" | "database" | "qrcode" | "bluetooth";
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("home");
   const [isPWA, setIsPWA] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstall, setShowInstall] = useState(false);
 
   useEffect(() => {
     // Check if running as installed PWA
@@ -17,7 +19,34 @@ export default function Home() {
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
     setIsPWA(isStandalone);
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstall(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowInstall(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
   }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    if (outcome === "accepted") setShowInstall(false);
+  };
 
   if (screen === "database") {
     return (
@@ -55,6 +84,31 @@ export default function Home() {
           {isPWA ? "Installed" : "PWA Ready"}
         </div>
       </header>
+
+      {showInstall && !isPWA && (
+        <div style={{ padding: "0 20px 16px" }}>
+          <button
+            onClick={handleInstall}
+            style={{
+              width: "100%",
+              padding: "14px",
+              background: "rgba(0,229,160,0.12)",
+              border: "1px solid rgba(0,229,160,0.4)",
+              borderRadius: "12px",
+              color: "#00e5a0",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            ⬇ Install Nexus App
+          </button>
+        </div>
+      )}
 
       <nav className="nav-grid">
         {/* Database Button */}
