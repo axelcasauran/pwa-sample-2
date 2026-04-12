@@ -1,13 +1,40 @@
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+
+// Build a content-based revision hash for a file.
+const fileRevision = (file) =>
+  crypto.createHash("md5").update(fs.readFileSync(file)).digest("hex");
+
+// Collect every file in public/ that isn't SW-generated, so they get precached.
+// next-pwa skips its own public-file scan when additionalManifestEntries is set,
+// so we replicate it here and add the start-url entry ("/") alongside.
+const swGenerated = /^(sw|workbox-|worker-|fallback-)/;
+function scanPublic(dir, prefix) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    if (e.isDirectory()) return scanPublic(path.join(dir, e.name), prefix + e.name + "/");
+    if (swGenerated.test(e.name) || e.name.endsWith(".map")) return [];
+    return [{ url: "/" + prefix + e.name, revision: fileRevision(path.join(dir, e.name)) }];
+  });
+}
+const publicEntries = scanPublic(path.join(__dirname, "public"), "");
+
 const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
-  // Precache the app document so it loads from cache even on first offline launch.
-  // Workbox adds '/' to the precache manifest during SW install — no network needed.
   fallbacks: {
     document: "/",
   },
+  // Precache the start-url HTML so the app loads on cold offline start.
+  // Without this, '/' is only runtime-cached after the first online visit,
+  // meaning a fresh launch from the home screen while offline has no HTML to
+  // serve and the browser shows its default offline page.
+  additionalManifestEntries: [
+    { url: "/", revision: Date.now().toString() },
+    ...publicEntries,
+  ],
   // Cache navigation requests on client-side nav so pages are ready offline
   cacheOnFrontEndNav: true,
   runtimeCaching: [
