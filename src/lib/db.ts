@@ -56,6 +56,13 @@ export async function getRecordsByCategory(category: NexusRecord["category"]): P
   return db.getAllFromIndex("records", "by-category", category);
 }
 
+export async function updateRecord(id: number, changes: Partial<Omit<NexusRecord, "id" | "timestamp">>): Promise<void> {
+  const db = await getDB();
+  const existing = await db.get("records", id);
+  if (!existing) return;
+  await db.put("records", { ...existing, ...changes });
+}
+
 export async function deleteRecord(id: number): Promise<void> {
   const db = await getDB();
   return db.delete("records", id);
