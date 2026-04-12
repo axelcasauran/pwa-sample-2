@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import DatabaseView from "@/components/DatabaseView";
 import QRScannerView from "@/components/QRScannerView";
 import BluetoothView from "@/components/BluetoothView";
+import SplashScreen from "@/components/SplashScreen";
 
 type Screen = "home" | "database" | "qrcode" | "bluetooth";
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("home");
+  const [prevScreen, setPrevScreen] = useState<Screen | null>(null);
+  const [isExiting, setIsExiting] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstall, setShowInstall] = useState(false);
@@ -48,35 +51,51 @@ export default function Home() {
     if (outcome === "accepted") setShowInstall(false);
   };
 
+  const navigateTo = (s: Screen) => {
+    setPrevScreen(screen);
+    setIsExiting(false);
+    setScreen(s);
+  };
+
+  const navigateBack = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      setScreen("home");
+      setIsExiting(false);
+      setPrevScreen(null);
+    }, 220);
+  };
+
   if (screen === "database") {
     return (
-      <div className="app-container">
-        <DatabaseView onBack={() => setScreen("home")} />
+      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        <DatabaseView onBack={navigateBack} />
       </div>
     );
   }
 
   if (screen === "qrcode") {
     return (
-      <div className="app-container">
-        <QRScannerView onBack={() => setScreen("home")} />
+      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        <QRScannerView onBack={navigateBack} />
       </div>
     );
   }
 
   if (screen === "bluetooth") {
     return (
-      <div className="app-container">
-        <BluetoothView onBack={() => setScreen("home")} />
+      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        <BluetoothView onBack={navigateBack} />
       </div>
     );
   }
 
   return (
     <div className="app-container">
+      <SplashScreen />
       <header className="app-header">
         <div className="app-logo">
-          NEXUS<span>.pwa</span>
+          PWA<span>.test</span>
         </div>
         <div className="app-subtitle">Device Toolkit</div>
         <div className="pwa-badge">
@@ -105,7 +124,7 @@ export default function Home() {
               gap: "8px",
             }}
           >
-            ⬇ Install Nexus App
+            ⬇ Install PWA Test
           </button>
         </div>
       )}
@@ -115,10 +134,10 @@ export default function Home() {
         <div
           className="nav-card"
           data-type="database"
-          onClick={() => setScreen("database")}
+          onClick={() => navigateTo("database")}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && setScreen("database")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("database")}
         >
           <div className="nav-icon db">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -142,10 +161,10 @@ export default function Home() {
         <div
           className="nav-card"
           data-type="qrcode"
-          onClick={() => setScreen("qrcode")}
+          onClick={() => navigateTo("qrcode")}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && setScreen("qrcode")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("qrcode")}
         >
           <div className="nav-icon qr">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -172,10 +191,10 @@ export default function Home() {
         <div
           className="nav-card"
           data-type="bluetooth"
-          onClick={() => setScreen("bluetooth")}
+          onClick={() => navigateTo("bluetooth")}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && setScreen("bluetooth")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("bluetooth")}
         >
           <div className="nav-icon bt">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
