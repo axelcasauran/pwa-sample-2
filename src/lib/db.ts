@@ -24,7 +24,7 @@ let dbPromise: Promise<IDBPDatabase<NexusDB>> | null = null;
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<NexusDB>("nexus-db", 1, {
+    dbPromise = openDB<NexusDB>("pwa-test-db", 1, {
       upgrade(db) {
         const store = db.createObjectStore("records", {
           keyPath: "id",
