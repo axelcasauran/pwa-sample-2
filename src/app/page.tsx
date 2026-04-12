@@ -13,6 +13,7 @@ export default function Home() {
   const [prevScreen, setPrevScreen] = useState<Screen | null>(null);
   const [isExiting, setIsExiting] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstall, setShowInstall] = useState(false);
 
@@ -22,6 +23,13 @@ export default function Home() {
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
     setIsPWA(isStandalone);
+
+    // Offline/online detection
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -38,6 +46,8 @@ export default function Home() {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
@@ -69,6 +79,7 @@ export default function Home() {
   if (screen === "database") {
     return (
       <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        {!isOnline && <div className="offline-banner">Offline — changes saved locally</div>}
         <DatabaseView onBack={navigateBack} />
       </div>
     );
@@ -77,6 +88,7 @@ export default function Home() {
   if (screen === "qrcode") {
     return (
       <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        {!isOnline && <div className="offline-banner">Offline — camera works locally</div>}
         <QRScannerView onBack={navigateBack} />
       </div>
     );
@@ -85,6 +97,7 @@ export default function Home() {
   if (screen === "bluetooth") {
     return (
       <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+        {!isOnline && <div className="offline-banner">Offline — Bluetooth works locally</div>}
         <BluetoothView onBack={navigateBack} />
       </div>
     );
@@ -93,6 +106,7 @@ export default function Home() {
   return (
     <div className="app-container">
       <SplashScreen />
+      {!isOnline && <div className="offline-banner">You are offline — app works fully offline</div>}
       <header className="app-header">
         <div className="app-logo">
           PWA<span>.test</span>

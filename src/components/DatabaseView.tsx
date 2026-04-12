@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   addRecord,
+  updateRecord,
   getAllRecords,
   deleteRecord,
   clearAllRecords,
@@ -19,6 +20,7 @@ export default function DatabaseView({ onBack }: Props) {
   const [count, setCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [editingRecord, setEditingRecord] = useState<NexusRecord | null>(null);
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -42,15 +44,31 @@ export default function DatabaseView({ onBack }: Props) {
 
   const handleAdd = async () => {
     if (!form.title.trim()) return;
-    await addRecord({
-      title: form.title.trim(),
-      content: form.content.trim(),
-      category: form.category,
-    });
+    if (editingRecord) {
+      await updateRecord(editingRecord.id!, {
+        title: form.title.trim(),
+        content: form.content.trim(),
+        category: form.category,
+      });
+      setEditingRecord(null);
+      showToast("Record updated");
+    } else {
+      await addRecord({
+        title: form.title.trim(),
+        content: form.content.trim(),
+        category: form.category,
+      });
+      showToast("Record added");
+    }
     setForm({ title: "", content: "", category: "note" });
     setShowModal(false);
     await loadRecords();
-    showToast("Record added");
+  };
+
+  const handleEdit = (rec: NexusRecord) => {
+    setEditingRecord(rec);
+    setForm({ title: rec.title, content: rec.content, category: rec.category });
+    setShowModal(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -129,26 +147,38 @@ export default function DatabaseView({ onBack }: Props) {
                 {rec.content && <div className="record-content">{rec.content}</div>}
                 <div className="record-time">{formatTime(rec.timestamp)}</div>
               </div>
-              <button
-                className="record-delete"
-                onClick={() => handleDelete(rec.id!)}
-                title="Delete record"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                </svg>
-              </button>
+              <div style={{ display: "flex", gap: 4 }}>
+                <button
+                  className="record-edit"
+                  onClick={() => handleEdit(rec)}
+                  title="Edit record"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                <button
+                  className="record-delete"
+                  onClick={() => handleDelete(rec.id!)}
+                  title="Delete record"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Add Record Modal */}
+      {/* Add / Edit Record Modal */}
       {showModal && (
-        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+        <div className="modal-backdrop" onClick={() => { setShowModal(false); setEditingRecord(null); setForm({ title: "", content: "", category: "note" }); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div className="modal-title">New Record</div>
+            <div className="modal-title">{editingRecord ? "Edit Record" : "New Record"}</div>
 
             <div className="form-group">
               <label className="form-label">Title</label>
@@ -196,7 +226,7 @@ export default function DatabaseView({ onBack }: Props) {
               disabled={!form.title.trim()}
               style={{ marginTop: 8 }}
             >
-              Save Record
+              {editingRecord ? "Update Record" : "Save Record"}
             </button>
           </div>
         </div>
