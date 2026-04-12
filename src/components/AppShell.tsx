@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { useRubberScroll } from "@/hooks/useRubberScroll";
+import { useRubberPress } from "@/hooks/useRubberPress";
 
 interface Props {
   children: React.ReactNode;
@@ -10,11 +11,13 @@ interface Props {
 
 /**
  * Wrapper for the app's main scrollable container.
- * Applies the rubber-band scroll effect via useRubberScroll.
+ * - useRubberScroll: elastic bounce when dragging past scroll boundaries
+ * - useRubberPress:  springy press feedback on all buttons/interactive elements
  */
 export default function AppShell({ children, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   useRubberScroll(ref);
+  useRubberPress();
 
   return (
     <div
