@@ -3,8 +3,13 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
-  // Ensure service worker caches all app shell resources on first load
-  // so the app works fully offline after one visit
+  // Precache the app document so it loads from cache even on first offline launch.
+  // Workbox adds '/' to the precache manifest during SW install — no network needed.
+  fallbacks: {
+    document: "/",
+  },
+  // Cache navigation requests on client-side nav so pages are ready offline
+  cacheOnFrontEndNav: true,
   runtimeCaching: [
     // Cache Next.js static assets (JS bundles, CSS, fonts) — offline critical
     {

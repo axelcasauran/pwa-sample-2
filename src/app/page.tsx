@@ -5,6 +5,7 @@ import DatabaseView from "@/components/DatabaseView";
 import QRScannerView from "@/components/QRScannerView";
 import BluetoothView from "@/components/BluetoothView";
 import SplashScreen from "@/components/SplashScreen";
+import AppShell from "@/components/AppShell";
 
 type Screen = "home" | "database" | "qrcode" | "bluetooth";
 
@@ -78,33 +79,33 @@ export default function Home() {
 
   if (screen === "database") {
     return (
-      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+      <AppShell className={isExiting ? "screen-exit" : ""}>
         {!isOnline && <div className="offline-banner">Offline — changes saved locally</div>}
         <DatabaseView onBack={navigateBack} />
-      </div>
+      </AppShell>
     );
   }
 
   if (screen === "qrcode") {
     return (
-      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+      <AppShell className={isExiting ? "screen-exit" : ""}>
         {!isOnline && <div className="offline-banner">Offline — camera works locally</div>}
         <QRScannerView onBack={navigateBack} />
-      </div>
+      </AppShell>
     );
   }
 
   if (screen === "bluetooth") {
     return (
-      <div className={`app-container${isExiting ? " screen-exit" : ""}`}>
+      <AppShell className={isExiting ? "screen-exit" : ""}>
         {!isOnline && <div className="offline-banner">Offline — Bluetooth works locally</div>}
         <BluetoothView onBack={navigateBack} />
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="app-container">
+    <AppShell>
       <SplashScreen />
       {!isOnline && <div className="offline-banner">You are offline — app works fully offline</div>}
       <header className="app-header">
@@ -233,6 +234,6 @@ export default function Home() {
         <span style={{ margin: "0 4px", opacity: 0.3 }}>•</span>
         <span>Service Worker {isPWA ? "Installed" : "Ready"}</span>
       </div>
-    </div>
+    </AppShell>
   );
 }
