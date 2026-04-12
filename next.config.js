@@ -8,8 +8,13 @@ const withPWA = require("next-pwa")({
   // first visit, which means a fresh launch from the home screen offline
   // has nothing and the browser shows its default offline page.
   dynamicStartUrl: false,
+  // Point the document fallback at the dedicated /_offline page so next-pwa
+  // auto-precaches its pre-rendered HTML. Combined with dynamicStartUrl:false
+  // (which precaches '/'), this gives us two independent document entries in
+  // the Workbox precache — a belt-and-suspenders defense against a single
+  // precache entry failing at install time.
   fallbacks: {
-    document: "/",
+    document: "/_offline",
   },
   // Cache navigation requests on client-side nav so pages are ready offline
   cacheOnFrontEndNav: true,
