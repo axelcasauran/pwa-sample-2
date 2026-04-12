@@ -163,11 +163,19 @@ body {
   }
 }
 
-/* Touch devices: immediate press feedback */
-.nav-card:active {
-  transform: scale(0.97);
-  border-color: var(--border-hover);
-  transition: transform 0.08s ease, border-color 0.08s ease;
+/* Touch devices: border feedback only — JS useRubberPress handles transform */
+@media (hover: none) {
+  .nav-card:active {
+    border-color: var(--border-hover);
+  }
+}
+/* Mouse/pointer devices: CSS :active scale (no JS rubber press) */
+@media (hover: hover) {
+  .nav-card:active {
+    transform: scale(0.97);
+    border-color: var(--border-hover);
+    transition: transform 0.08s ease, border-color 0.08s ease;
+  }
 }
 
 .nav-card[data-type="database"]::before {
@@ -280,11 +288,13 @@ body {
   color: var(--text-primary);
 }
 
+/* JS useRubberPress handles transform on touch; keep visual state for both */
 .back-btn:active {
   background: var(--bg-elevated);
   color: var(--text-primary);
-  transform: scale(0.93);
-  transition: transform 0.08s ease;
+}
+@media (hover: hover) {
+  .back-btn:active { transform: scale(0.93); transition: transform 0.08s ease; }
 }
 
 .screen-title {
@@ -463,8 +473,11 @@ body {
 
 .record-edit:hover  { color: var(--info);   background: var(--info-dim); }
 .record-delete:hover { color: var(--danger); background: var(--danger-dim); }
-.record-edit:active  { transform: scale(0.93); }
-.record-delete:active { transform: scale(0.93); }
+/* JS useRubberPress handles transform on touch */
+@media (hover: hover) {
+  .record-edit:active  { transform: scale(0.93); }
+  .record-delete:active { transform: scale(0.93); }
+}
 
 /* ═══ Empty State ═══ */
 .empty-state {
