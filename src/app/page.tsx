@@ -19,6 +19,23 @@ export default function Home() {
   const [showInstall, setShowInstall] = useState(false);
 
   useEffect(() => {
+    // Prime the SW 'start-url' cache so the app loads offline from the first visit.
+    // The SW's NetworkFirst handler for '/' only caches when it *intercepts* a fetch.
+    // It cannot intercept the very first page load (SW not yet active then), so we
+    // explicitly fetch '/' once the SW has taken control of the page.
+    if ("serviceWorker" in navigator) {
+      const primeCache = () => fetch("/").catch(() => {});
+      if (navigator.serviceWorker.controller) {
+        // SW already controlling this page — cache it now
+        primeCache();
+      } else {
+        // Wait until the new SW claims control (first visit with new SW)
+        navigator.serviceWorker.addEventListener("controllerchange", primeCache, { once: true });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     // Check if running as installed PWA
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||

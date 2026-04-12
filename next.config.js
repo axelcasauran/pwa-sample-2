@@ -8,12 +8,6 @@ const withPWA = require("next-pwa")({
   fallbacks: {
     document: "/",
   },
-  // Explicitly add the HTML shell to the precache manifest.
-  // Without this, '/' is NOT in the precache and the fallback has nothing to serve.
-  // The SW fetches and stores '/' during installation on the very first online visit.
-  additionalManifestEntries: [
-    { url: "/", revision: null },
-  ],
   // Cache navigation requests on client-side nav so pages are ready offline
   cacheOnFrontEndNav: true,
   runtimeCaching: [
