@@ -6,6 +6,7 @@ import QRScannerView from "@/components/QRScannerView";
 import BluetoothView from "@/components/BluetoothView";
 import SplashScreen from "@/components/SplashScreen";
 import AppShell from "@/components/AppShell";
+import pkg from "../../package.json";
 
 type Screen = "home" | "database" | "qrcode" | "bluetooth";
 
@@ -234,6 +235,8 @@ export default function Home() {
         <span style={{ margin: "0 4px", opacity: 0.3 }}>•</span>
         <span>Service Worker {isPWA ? "Installed" : "Ready"}</span>
       </div>
+
+      <div className="app-version">v{pkg.version}</div>
     </AppShell>
   );
 }

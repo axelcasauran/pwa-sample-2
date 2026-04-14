@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls node_modules/.bin/next*)",
+      "Bash(npx next:*)"
+    ]
+  }
+}
